@@ -1,6 +1,7 @@
 const sdk = require("node-appwrite");
 const nodemailer = require("nodemailer");
-const puppeteer = require("puppeteer");
+const chromium = require("@sparticuz/chromium");
+const puppeteer = require("puppeteer-core");
 
 module.exports = async function (req, res) {
     const client = new sdk.Client();
@@ -16,8 +17,13 @@ module.exports = async function (req, res) {
         const userId = payload.$id;
         const userEmail = payload.email;
 
-        // Generate PDF using Puppeteer
-        const browser = await puppeteer.launch();
+        // Generate PDF using Puppeteer optimized for Appwrite
+        const browser = await puppeteer.launch({
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless
+        });
+
         const page = await browser.newPage();
         
         const htmlContent = `
@@ -63,7 +69,8 @@ module.exports = async function (req, res) {
         return res.json({ success: true, message: "Email sent successfully!" });
 
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error:", error.stack);
         return res.json({ success: false, error: error.message });
     }
 };
+
