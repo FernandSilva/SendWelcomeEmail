@@ -3,7 +3,7 @@ const nodemailer = require("nodemailer");
 const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
 
-module.exports = async function (req, res) {
+module.exports = async function (req) {
     const client = new sdk.Client();
     const users = new sdk.Users(client);
     
@@ -14,7 +14,6 @@ module.exports = async function (req, res) {
     
     try {
         const payload = JSON.parse(req.payload);
-        const userId = payload.$id;
         const userEmail = payload.email;
 
         // Generate PDF using Puppeteer optimized for Appwrite
@@ -66,11 +65,11 @@ module.exports = async function (req, res) {
         // Send email
         await transporter.sendMail(mailOptions);
 
-        return res.json({ success: true, message: "Email sent successfully!" });
+        return { success: true, message: "Email sent successfully!" };
 
     } catch (error) {
         console.error("Error:", error.stack);
-        return res.json({ success: false, error: error.message });
+        return { success: false, error: error.message };
     }
 };
 
