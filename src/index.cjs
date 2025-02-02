@@ -74,11 +74,12 @@ module.exports = async function (req) {
         // Send email
         await transporter.sendMail(mailOptions);
 
-        return JSON.stringify({ success: true, message: "Email sent successfully!" });
+        return { success: true, message: "Email sent successfully!" };
 
     } catch (error) {
         console.error("Error:", error.stack);
-        return JSON.stringify({ success: false, error: error.message });
+        return { success: false, error: error.message };
     }
 };
+
 
