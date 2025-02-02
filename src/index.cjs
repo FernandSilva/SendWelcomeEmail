@@ -13,7 +13,16 @@ module.exports = async function (req) {
         .setKey(process.env.APPWRITE_API_KEY);
     
     try {
+        // Ensure req.payload exists before parsing
+        if (!req || !req.payload) {
+            throw new Error("Request payload is missing.");
+        }
+
         const payload = JSON.parse(req.payload);
+        if (!payload.email) {
+            throw new Error("User email is missing in payload.");
+        }
+
         const userEmail = payload.email;
 
         // Generate PDF using Puppeteer optimized for Appwrite
@@ -65,11 +74,11 @@ module.exports = async function (req) {
         // Send email
         await transporter.sendMail(mailOptions);
 
-        return { success: true, message: "Email sent successfully!" };
+        return JSON.stringify({ success: true, message: "Email sent successfully!" });
 
     } catch (error) {
         console.error("Error:", error.stack);
-        return { success: false, error: error.message };
+        return JSON.stringify({ success: false, error: error.message });
     }
 };
 
