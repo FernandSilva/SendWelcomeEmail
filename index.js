@@ -13,14 +13,21 @@ module.exports = async function (req) {
         .setKey(process.env.APPWRITE_API_KEY);
     
     try {
-        // Ensure req.payload exists before parsing
+        // Ensure req.payload exists and is a valid JSON string
         if (!req || !req.payload) {
-            throw new Error("Request payload is missing.");
+            return { success: false, error: "Request payload is missing." };
         }
 
-        const payload = JSON.parse(req.payload);
+        let payload;
+        try {
+            payload = JSON.parse(req.payload);
+        } catch (err) {
+            return { success: false, error: "Invalid JSON format in payload." };
+        }
+
+        // Ensure the email field exists
         if (!payload.email) {
-            throw new Error("User email is missing in payload.");
+            return { success: false, error: "User email is missing in payload." };
         }
 
         const userEmail = payload.email;
