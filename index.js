@@ -8,32 +8,36 @@ module.exports = async function (req) {
   const client = new sdk.Client();
   const users = new sdk.Users(client);
   
+  // Use environment variables as defined in your .env.local file
   client
-    .setEndpoint(process.env.APPWRITE_ENDPOINT)
-    .setProject(process.env.APPWRITE_PROJECT_ID)
-    .setKey(process.env.APPWRITE_API_KEY);
+    .setEndpoint(process.env.VITE_APPWRITE_ENDPOINT)
+    .setProject(process.env.VITE_APPWRITE_PROJECT_ID)
+    .setKey(process.env.VITE_APPWRITE_API_KEY);
   
   try {
     if (!req || !req.payload) {
       return { success: false, error: "Request payload is missing." };
     }
+    
     let payload;
     try {
       payload = JSON.parse(req.payload);
     } catch (err) {
       return { success: false, error: "Invalid JSON format in payload." };
     }
+    
     if (!payload.email) {
       return { success: false, error: "User email is missing in payload." };
     }
+    
     const userEmail = payload.email;
     const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
     
-    // Launch Puppeteer with Google-friendly settings
+    // Launch Puppeteer with Chromium settings
     const browser = await puppeteer.launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(),
-      headless: chromium.headless
+      headless: chromium.headless,
     });
     const page = await browser.newPage();
     
@@ -125,19 +129,18 @@ module.exports = async function (req) {
     const pdfBuffer = await page.pdf({ format: 'A4' });
     await browser.close();
     console.log("PDF generated successfully.");
-
+    
     // Configure Nodemailer transport
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
       port: parseInt(process.env.SMTP_PORT, 10) || 587,
-      secure: false, // false for port 587 with TLS
+      secure: false, // false for TLS with port 587
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
     });
     
-    // Email options
     const mailOptions = {
       from: process.env.SMTP_USER,
       to: userEmail,
@@ -154,12 +157,11 @@ module.exports = async function (req) {
     
     await transporter.sendMail(mailOptions);
     console.log("Welcome email sent successfully to:", userEmail);
-
+    
     return { success: true, message: "Email sent successfully!" };
-
+    
   } catch (error) {
     console.error("Error:", error.stack);
     return { success: false, error: error.message };
   }
 };
-
