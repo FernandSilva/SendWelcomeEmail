@@ -1,7 +1,7 @@
 const sdk = require("node-appwrite");
 const nodemailer = require("nodemailer");
 
-module.exports = async function (req, res) {
+module.exports = async function (req) {
   const client = new sdk.Client();
 
   client
@@ -11,10 +11,10 @@ module.exports = async function (req, res) {
 
   console.log("✅ Function execution started.");
 
-  // Validate request payload
+  // **Fix #1: Validate request payload correctly**
   if (!req || !req.payload) {
     console.error("❌ Request payload missing.");
-    return res.json({ success: false, error: "Request payload missing." });
+    return { success: false, error: "Request payload missing." };
   }
 
   let payload;
@@ -23,18 +23,18 @@ module.exports = async function (req, res) {
     console.log("📩 Received payload:", payload);
   } catch (err) {
     console.error("❌ Invalid JSON format:", err.message);
-    return res.json({ success: false, error: "Invalid JSON payload." });
+    return { success: false, error: "Invalid JSON payload." };
   }
 
   if (!payload.email) {
     console.error("❌ Email address missing.");
-    return res.json({ success: false, error: "Email address missing in payload." });
+    return { success: false, error: "Email address missing in payload." };
   }
 
   const userEmail = payload.email;
   console.log("✅ Email to send:", userEmail);
 
-  // SMTP Configuration
+  // **Fix #2: SMTP Configuration**
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT, 10),
@@ -59,10 +59,11 @@ module.exports = async function (req, res) {
     });
 
     console.log("✅ Email sent successfully to:", userEmail);
-    return res.json({ success: true, message: "Email sent successfully!" });
+    return { success: true, message: "Email sent successfully!" };
 
   } catch (error) {
     console.error("❌ Email sending failed:", error.message);
-    return res.json({ success: false, error: "Email sending failed: " + error.message });
+    return { success: false, error: "Email sending failed: " + error.message };
   }
 };
+
