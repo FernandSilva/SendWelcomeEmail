@@ -3,7 +3,7 @@ const nodemailer = require("nodemailer");
 const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
 
-module.exports = async function (req, res) {
+module.exports = async function (req) {
   const client = new sdk.Client();
 
   client
@@ -16,7 +16,7 @@ module.exports = async function (req, res) {
 
     if (!req || !req.payload) {
       console.error("❌ Request payload missing.");
-      return res.json({ success: false, error: "Request payload missing." });
+      return { success: false, error: "Request payload missing." };
     }
 
     let payload;
@@ -24,12 +24,12 @@ module.exports = async function (req, res) {
       payload = JSON.parse(req.payload);
     } catch (err) {
       console.error("❌ Invalid JSON format:", err.message);
-      return res.json({ success: false, error: "Invalid JSON payload." });
+      return { success: false, error: "Invalid JSON payload." };
     }
 
     if (!payload.email) {
       console.error("❌ User email missing in payload.");
-      return res.json({ success: false, error: "User email missing." });
+      return { success: false, error: "User email missing." };
     }
 
     const userEmail = payload.email;
@@ -73,7 +73,7 @@ module.exports = async function (req, res) {
       console.log("✅ SMTP Connection Successful!");
     } catch (smtpError) {
       console.error("❌ SMTP Connection Failed:", smtpError.message);
-      return res.json({ success: false, error: "SMTP connection failed: " + smtpError.message });
+      return { success: false, error: "SMTP connection failed: " + smtpError.message };
     }
 
     const mailOptions = {
@@ -87,10 +87,10 @@ module.exports = async function (req, res) {
     await transporter.sendMail(mailOptions);
     console.log("✅ Email sent successfully to:", userEmail);
 
-    return res.json({ success: true, message: "Email sent successfully!" });
+    return { success: true, message: "Email sent successfully!" };
 
   } catch (error) {
     console.error("❌ Error:", error.message);
-    return res.json({ success: false, error: error.message });
+    return { success: false, error: error.message };
   }
 };
