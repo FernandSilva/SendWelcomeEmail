@@ -14,7 +14,7 @@ module.exports = async function (req, context) {
     .setKey(process.env.VITE_APPWRITE_API_KEY);
 
   try {
-    // **Check Payload Properly**
+    // Check the request payload
     context.log("🔍 Checking request payload...");
     if (!req || !req.body) {
       context.error("❌ Request payload missing.");
@@ -25,7 +25,7 @@ module.exports = async function (req, context) {
     const payload = req.body;
     context.log("✅ Parsed Payload:", payload);
 
-    // **Check for Required Fields**
+    // Validate required fields in the payload
     if (!payload.email) {
       context.error("❌ Email field missing in payload.");
       return { success: false, error: "Email is required." };
@@ -33,9 +33,10 @@ module.exports = async function (req, context) {
     const userEmail = payload.email;
     context.log("✅ Email Received:", userEmail);
 
+    // Set homepage URL (with a fallback)
     const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
 
-    // **Launch Puppeteer for PDF Generation**
+    // Launch Puppeteer for PDF Generation
     context.log("🚀 Launching Puppeteer...");
     const browser = await puppeteer.launch({
       args: chromium.args,
@@ -44,11 +45,18 @@ module.exports = async function (req, context) {
     });
     const page = await browser.newPage();
 
+    // HTML content for the PDF with some basic styling
     const htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
+        <meta charset="utf-8">
         <title>Welcome to GrowBuddy!</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { color: #2E8B57; }
+          p { font-size: 16px; }
+        </style>
       </head>
       <body>
         <h1>Welcome to GrowBuddy!</h1>
@@ -61,19 +69,19 @@ module.exports = async function (req, context) {
     await browser.close();
     context.log("✅ PDF successfully generated.");
 
-    // **Setup Nodemailer SMTP Connection**
+    // Setup Nodemailer SMTP Connection
     context.log("🔄 Setting up SMTP transporter...");
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT, 10),
-      secure: false, // use TLS
+      secure: false, // Using TLS
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
     });
 
-    // **Verify SMTP Connection**
+    // Verify SMTP Connection
     try {
       context.log("🔄 Verifying SMTP connection...");
       await transporter.verify();
@@ -83,7 +91,7 @@ module.exports = async function (req, context) {
       return { success: false, error: "SMTP connection failed: " + smtpError.message };
     }
 
-    // **Send Email**
+    // Configure and send the welcome email with PDF attachment
     const mailOptions = {
       from: process.env.SMTP_USER,
       to: userEmail,
@@ -108,4 +116,3 @@ module.exports = async function (req, context) {
     return { success: false, error: error.message };
   }
 };
-
