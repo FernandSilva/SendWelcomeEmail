@@ -3,8 +3,8 @@ const nodemailer = require("nodemailer");
 const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
 
-module.exports = async function (req, res) {
-  console.log("✅ Function execution started.");
+module.exports = async function (req, context) {
+  context.log("✅ Function execution started.");
 
   // Initialize Appwrite client
   const client = new sdk.Client();
@@ -14,35 +14,36 @@ module.exports = async function (req, res) {
     .setKey(process.env.VITE_APPWRITE_API_KEY);
 
   try {
-    // **Check and Log Payload**
-    console.log("🔍 Checking request payload...");
-    if (!req || !req.payload) {
-      console.error("❌ Request payload missing.");
-      return res.json({ success: false, error: "Request payload missing." });
+    // **Check Payload Properly**
+    context.log("🔍 Checking request payload...");
+    
+    if (!req || !req.body) {
+      context.error("❌ Request payload missing.");
+      return { success: false, error: "Request payload missing." };
     }
 
     // **Attempt to Parse Payload**
     let payload;
     try {
-      payload = JSON.parse(req.payload);
-      console.log("✅ Parsed Payload:", payload);
+      payload = req.body; // Appwrite automatically parses JSON, no need for JSON.parse()
+      context.log("✅ Parsed Payload:", payload);
     } catch (err) {
-      console.error("❌ Invalid JSON format:", err.message);
-      return res.json({ success: false, error: "Invalid JSON format." });
+      context.error("❌ Invalid JSON format:", err.message);
+      return { success: false, error: "Invalid JSON format." };
     }
 
     // **Check for Required Fields**
     if (!payload.email) {
-      console.error("❌ Email field missing in payload.");
-      return res.json({ success: false, error: "Email is required." });
+      context.error("❌ Email field missing in payload.");
+      return { success: false, error: "Email is required." };
     }
     const userEmail = payload.email;
-    console.log("✅ Email Received:", userEmail);
+    context.log("✅ Email Received:", userEmail);
 
     const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
 
     // **Launch Puppeteer for PDF Generation**
-    console.log("🚀 Launching Puppeteer...");
+    context.log("🚀 Launching Puppeteer...");
     const browser = await puppeteer.launch({
       args: chromium.args,
       executablePath: await chromium.executablePath(),
@@ -66,10 +67,10 @@ module.exports = async function (req, res) {
     const pdfBuffer = await page.pdf({ format: "A4" });
 
     await browser.close();
-    console.log("✅ PDF successfully generated.");
+    context.log("✅ PDF successfully generated.");
 
     // **Setup Nodemailer SMTP Connection**
-    console.log("🔄 Setting up SMTP transporter...");
+    context.log("🔄 Setting up SMTP transporter...");
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT, 10),
@@ -82,12 +83,12 @@ module.exports = async function (req, res) {
 
     // **Verify SMTP Connection**
     try {
-      console.log("🔄 Verifying SMTP connection...");
+      context.log("🔄 Verifying SMTP connection...");
       await transporter.verify();
-      console.log("✅ SMTP Connection Successful!");
+      context.log("✅ SMTP Connection Successful!");
     } catch (smtpError) {
-      console.error("❌ SMTP Connection Failed:", smtpError.message);
-      return res.json({ success: false, error: "SMTP connection failed: " + smtpError.message });
+      context.error("❌ SMTP Connection Failed:", smtpError.message);
+      return { success: false, error: "SMTP connection failed: " + smtpError.message };
     }
 
     // **Send Email**
@@ -106,13 +107,13 @@ module.exports = async function (req, res) {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("✅ Welcome email sent successfully to:", userEmail);
+    context.log("✅ Welcome email sent successfully to:", userEmail);
 
-    return res.json({ success: true, message: "Email sent successfully!" });
+    return { success: true, message: "Email sent successfully!" };
 
   } catch (error) {
-    console.error("❌ Function Error:", error.message);
-    return res.json({ success: false, error: error.message });
+    context.error("❌ Function Error:", error.message);
+    return { success: false, error: error.message };
   }
 };
 
