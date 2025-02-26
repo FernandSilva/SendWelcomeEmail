@@ -16,21 +16,14 @@ module.exports = async function (req, context) {
   try {
     // **Check Payload Properly**
     context.log("🔍 Checking request payload...");
-    
     if (!req || !req.body) {
       context.error("❌ Request payload missing.");
       return { success: false, error: "Request payload missing." };
     }
 
-    // **Attempt to Parse Payload**
-    let payload;
-    try {
-      payload = req.body; // Appwrite automatically parses JSON, no need for JSON.parse()
-      context.log("✅ Parsed Payload:", payload);
-    } catch (err) {
-      context.error("❌ Invalid JSON format:", err.message);
-      return { success: false, error: "Invalid JSON format." };
-    }
+    // Appwrite automatically parses JSON payloads
+    const payload = req.body;
+    context.log("✅ Parsed Payload:", payload);
 
     // **Check for Required Fields**
     if (!payload.email) {
@@ -65,7 +58,6 @@ module.exports = async function (req, context) {
 
     await page.setContent(htmlContent, { waitUntil: "networkidle0" });
     const pdfBuffer = await page.pdf({ format: "A4" });
-
     await browser.close();
     context.log("✅ PDF successfully generated.");
 
@@ -74,7 +66,7 @@ module.exports = async function (req, context) {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT, 10),
-      secure: false, // TLS
+      secure: false, // use TLS
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
