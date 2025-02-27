@@ -4,7 +4,7 @@ const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
 
 module.exports = async function (req, context) {
-  // Use context.log if available; otherwise, fallback to console.log.
+  // Fallback logging functions
   const log = context && context.log ? context.log : console.log;
   const errorLog = context && context.error ? context.error : console.error;
 
@@ -26,6 +26,8 @@ module.exports = async function (req, context) {
     .setKey(process.env.VITE_APPWRITE_API_KEY);
 
   let payload;
+  
+  // Check if payload exists in req.body
   if (req && req.body && Object.keys(req.body).length > 0) {
     payload = req.body;
     log("DEBUG: Payload from req.body: " + JSON.stringify(payload));
@@ -36,6 +38,17 @@ module.exports = async function (req, context) {
     } catch (e) {
       payload = process.env.APPWRITE_FUNCTION_DATA;
       log("DEBUG: APPWRITE_FUNCTION_DATA is not valid JSON: " + payload);
+    }
+  }
+
+  // If the payload is a string, try to parse it
+  if (typeof payload === 'string') {
+    try {
+      payload = JSON.parse(payload);
+      log("DEBUG: Parsed string payload: " + JSON.stringify(payload));
+    } catch (e) {
+      errorLog("❌ Error parsing payload string: " + e.message);
+      return { success: false, error: "Invalid JSON in payload." };
     }
   }
 
@@ -51,6 +64,7 @@ module.exports = async function (req, context) {
   const userEmail = payload.email;
   log("✅ Email Received: " + userEmail);
 
+  // Set homepage URL (with a fallback)
   const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
 
   log("🚀 Launching Puppeteer...");
