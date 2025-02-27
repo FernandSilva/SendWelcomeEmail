@@ -74,7 +74,11 @@ module.exports = async function (req, context) {
   log("🚀 Launching Puppeteer...");
   let browser;
   try {
-    browser = await puppeteer.launch({ headless: true });
+    // Launch Puppeteer with --no-sandbox flags for serverless environments
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
   } catch (launchError) {
     errorLog("❌ Failed to launch browser: " + launchError.message);
     return { success: false, error: "Failed to launch browser: " + launchError.message };
