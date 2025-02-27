@@ -72,7 +72,7 @@ module.exports = async function (req, context) {
   // Use a homepage URL from environment variable or fallback.
   const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
 
-  // Updated HTML email content with new text and logo.
+  // Updated HTML email content with the new text and no image above the heading.
   const emailHtmlContent = `
     <!DOCTYPE html>
     <html>
@@ -93,10 +93,6 @@ module.exports = async function (req, context) {
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-          }
-          .logo {
-            max-width: 200px;
-            margin-bottom: 20px;
           }
           h1 {
             color: #2E8B57;
@@ -130,7 +126,6 @@ module.exports = async function (req, context) {
       </head>
       <body>
         <div class="container">
-          <img class="logo" src="/logo.jpeg" alt="GrowBuddy Logo" />
           <h1>Welcome to GrowBuddy! 🌿</h1>
           <p>We're excited to have you here! GrowBuddy is a private cannabis community built for growers, enthusiasts, and like-minded individuals who respect each other's privacy and passion for the plant.</p>
           <p><span class="highlight">🔒 Privacy First</span> – We value your anonymity. We recommend using a username rather than personal details to keep your experience secure and chill.</p>
