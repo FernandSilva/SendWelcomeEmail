@@ -72,7 +72,7 @@ module.exports = async function (req, context) {
   // Use a homepage URL from environment variable or fallback.
   const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
 
-  // Updated HTML email content with improved styling and the provided text.
+  // Updated HTML email content with new text and logo.
   const emailHtmlContent = `
     <!DOCTYPE html>
     <html>
@@ -94,6 +94,10 @@ module.exports = async function (req, context) {
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
           }
+          .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
+          }
           h1 {
             color: #2E8B57;
             font-size: 28px;
@@ -107,12 +111,6 @@ module.exports = async function (req, context) {
           .highlight {
             font-weight: bold;
           }
-          .footer {
-            text-align: center;
-            font-size: 14px;
-            color: #777;
-            margin-top: 30px;
-          }
           .button {
             display: inline-block;
             padding: 12px 20px;
@@ -122,22 +120,29 @@ module.exports = async function (req, context) {
             border-radius: 5px;
             font-weight: bold;
           }
-          .logo {
-            max-width: 200px;
-            margin-bottom: 20px;
+          .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-top: 30px;
           }
         </style>
       </head>
       <body>
         <div class="container">
-          <img class="logo" src="${homepageUrl}/img.jpeg" alt="GrowBuddy Logo" />
+          <img class="logo" src="/logo.jpeg" alt="GrowBuddy Logo" />
           <h1>Welcome to GrowBuddy! 🌿</h1>
           <p>We're excited to have you here! GrowBuddy is a private cannabis community built for growers, enthusiasts, and like-minded individuals who respect each other's privacy and passion for the plant.</p>
           <p><span class="highlight">🔒 Privacy First</span> – We value your anonymity. We recommend using a username rather than personal details to keep your experience secure and chill.</p>
-          <p><span class="highlight">🤝 Respect the Vibes</span> – This is a friendly space. Treat others with kindness, share knowledge, and keep the community positive. No hate, no drama, just good vibes.</p>
+          <p><span class="highlight">🤝 Respect the Vibes</span> – This is a friendly space. Treat others with kindness, share knowledge, and keep the community positive. No hate, no drama—just good vibes.</p>
           <p><span class="highlight">🌱 Grow Together</span> – Whether you’re a beginner or a seasoned pro, this space is for learning, sharing, and thriving in the grow game.</p>
           <p><span class="highlight">🚨 For Transparency</span> – GrowBuddy is a private cannabis club that operates within legal limits. We appreciate honesty from all members and expect everyone to engage in good faith. If you're here on business, we’d appreciate it if you were up front.</p>
-          <p>If you're happy and agree with all of what has been mentioned above, click the button below and join the crew.</p>
+          <p><span class="highlight">Installation Guide</span><br>
+             Want quick access to GrowBuddy? No need for app stores—just add it to your home screen!<br>
+             <strong>On iPhone (Safari):</strong> Tap the share icon, then select "Add to Home Screen."<br>
+             <strong>On Android (Chrome):</strong> Tap the menu (three dots), then choose "Add to Home Screen."<br>
+             This creates an icon on your device, making GrowBuddy feel just like a native app—one tap, and you're in! 🌿🚀
+          </p>
           <p style="text-align: center;">
             <a class="button" href="${homepageUrl}">Join GrowBuddy</a>
           </p>
