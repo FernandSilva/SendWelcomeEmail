@@ -1,10 +1,8 @@
 const sdk = require("node-appwrite");
 const nodemailer = require("nodemailer");
-const puppeteer = require("puppeteer-core");
-const chromium = require("chrome-aws-lambda");
 
 module.exports = async function (req, context) {
-  // Fallback logging functions
+  // Use context.log/error if available; otherwise fallback to console.log/error.
   const log = (context && context.log) || console.log;
   const errorLog = (context && context.error) || console.error;
 
@@ -31,6 +29,7 @@ module.exports = async function (req, context) {
     .setProject(process.env.VITE_APPWRITE_PROJECT_ID)
     .setKey(process.env.VITE_APPWRITE_API_KEY);
 
+  // Extract payload from various sources.
   let payload;
   if (requestData && requestData.bodyJson && Object.keys(requestData.bodyJson).length > 0) {
     payload = requestData.bodyJson;
@@ -70,24 +69,11 @@ module.exports = async function (req, context) {
   const userEmail = payload.email;
   log("✅ Email Received: " + userEmail);
 
+  // Use a homepage URL from environment variable or fallback.
   const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
 
-  log("🚀 Launching Puppeteer...");
-  let browser;
-  try {
-    browser = await puppeteer.launch({
-      headless: chromium.headless,
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-    });
-  } catch (launchError) {
-    errorLog("❌ Failed to launch browser: " + launchError.message);
-    return { success: false, error: "Failed to launch browser: " + launchError.message };
-  }
-  const page = await browser.newPage();
-
-  const htmlContent = `
+  // Instead of generating a PDF, we simply create HTML content for the email.
+  const emailHtmlContent = `
     <!DOCTYPE html>
     <html>
       <head>
@@ -103,12 +89,8 @@ module.exports = async function (req, context) {
         <h1>Welcome to GrowBuddy!</h1>
         <p>Thank you for signing up. Visit us at <a href="${homepageUrl}">${homepageUrl}</a></p>
       </body>
-    </html>`;
-
-  await page.setContent(htmlContent, { waitUntil: "networkidle0" });
-  const pdfBuffer = await page.pdf({ format: "A4" });
-  await browser.close();
-  log("✅ PDF successfully generated.");
+    </html>
+  `;
 
   log("🔄 Setting up SMTP transporter...");
   const transporter = nodemailer.createTransport({
@@ -134,14 +116,7 @@ module.exports = async function (req, context) {
     from: process.env.SMTP_USER,
     to: userEmail,
     subject: "Welcome to GrowBuddy!",
-    text: "Thanks for signing up! Check out the attached PDF for details.",
-    attachments: [
-      {
-        filename: "Welcome.pdf",
-        content: pdfBuffer,
-        contentType: "application/pdf",
-      },
-    ],
+    html: emailHtmlContent,
   };
 
   await transporter.sendMail(mailOptions);
