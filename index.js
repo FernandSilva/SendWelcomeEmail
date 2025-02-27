@@ -1,7 +1,6 @@
 const sdk = require("node-appwrite");
 const nodemailer = require("nodemailer");
-const chromium = require("@sparticuz/chromium");
-const puppeteer = require("puppeteer-core");
+const puppeteer = require("puppeteer");
 const fs = require("fs");
 
 module.exports = async function (req, context) {
