@@ -1,6 +1,7 @@
 const sdk = require("node-appwrite");
 const nodemailer = require("nodemailer");
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
+const chromium = require("chrome-aws-lambda");
 
 module.exports = async function (req, context) {
   // Fallback logging functions
@@ -74,14 +75,11 @@ module.exports = async function (req, context) {
   log("🚀 Launching Puppeteer...");
   let browser;
   try {
-    // Get the path of the bundled Chromium that puppeteer downloads.
-    const execPath = puppeteer.executablePath();
-    log("DEBUG: Puppeteer executable path: " + execPath);
-    // Launch puppeteer using the bundled Chromium and no-sandbox flags.
     browser = await puppeteer.launch({
-      headless: true,
-      executablePath: execPath,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: chromium.headless,
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
     });
   } catch (launchError) {
     errorLog("❌ Failed to launch browser: " + launchError.message);
@@ -92,19 +90,19 @@ module.exports = async function (req, context) {
   const htmlContent = `
     <!DOCTYPE html>
     <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Welcome to GrowBuddy!</title>
-      <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        h1 { color: #2E8B57; }
-        p { font-size: 16px; }
-      </style>
-    </head>
-    <body>
-      <h1>Welcome to GrowBuddy!</h1>
-      <p>Thank you for signing up. Visit us at <a href="${homepageUrl}">${homepageUrl}</a></p>
-    </body>
+      <head>
+        <meta charset="utf-8">
+        <title>Welcome to GrowBuddy!</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { color: #2E8B57; }
+          p { font-size: 16px; }
+        </style>
+      </head>
+      <body>
+        <h1>Welcome to GrowBuddy!</h1>
+        <p>Thank you for signing up. Visit us at <a href="${homepageUrl}">${homepageUrl}</a></p>
+      </body>
     </html>`;
 
   await page.setContent(htmlContent, { waitUntil: "networkidle0" });
