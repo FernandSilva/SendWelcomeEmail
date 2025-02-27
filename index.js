@@ -15,7 +15,7 @@ module.exports = async function (req, context) {
     requestData = req.req;
   }
 
-  // Debug logging for raw request data and APPWRITE_FUNCTION_DATA
+  // Debug logging for raw request data and APPWRITE_FUNCTION_DATA.
   try {
     log("DEBUG: Raw requestData object: " + JSON.stringify(requestData));
   } catch (e) {
@@ -74,9 +74,13 @@ module.exports = async function (req, context) {
   log("🚀 Launching Puppeteer...");
   let browser;
   try {
-    // Launch Puppeteer with --no-sandbox flags for serverless environments
+    // Get the path of the bundled Chromium that puppeteer downloads.
+    const execPath = puppeteer.executablePath();
+    log("DEBUG: Puppeteer executable path: " + execPath);
+    // Launch puppeteer using the bundled Chromium and no-sandbox flags.
     browser = await puppeteer.launch({
       headless: true,
+      executablePath: execPath,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
   } catch (launchError) {
