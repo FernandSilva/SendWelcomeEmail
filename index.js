@@ -4,13 +4,21 @@ const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
 
 module.exports = async function (req, context) {
-  // Fallback logging functions
+  // Use context.log if available; otherwise, fallback to console.log.
   const log = context && context.log ? context.log : console.log;
   const errorLog = context && context.error ? context.error : console.error;
 
   log("✅ Function execution started.");
 
-  // Initialize Appwrite client
+  // Dump raw request and environment variable for debugging.
+  try {
+    log("DEBUG: Raw req object: " + JSON.stringify(req));
+  } catch (e) {
+    log("DEBUG: Could not stringify req object");
+  }
+  log("DEBUG: APPWRITE_FUNCTION_DATA: " + process.env.APPWRITE_FUNCTION_DATA);
+
+  // Initialize Appwrite client.
   const client = new sdk.Client();
   client
     .setEndpoint(process.env.VITE_APPWRITE_ENDPOINT)
@@ -18,17 +26,16 @@ module.exports = async function (req, context) {
     .setKey(process.env.VITE_APPWRITE_API_KEY);
 
   let payload;
-  
-  // Check for payload in req.body first...
-  if (req && req.body) {
+  if (req && req.body && Object.keys(req.body).length > 0) {
     payload = req.body;
-  } 
-  // ...then check environment variable if not available in req.body.
-  else if (process.env.APPWRITE_FUNCTION_DATA) {
+    log("DEBUG: Payload from req.body: " + JSON.stringify(payload));
+  } else if (process.env.APPWRITE_FUNCTION_DATA) {
     try {
       payload = JSON.parse(process.env.APPWRITE_FUNCTION_DATA);
+      log("DEBUG: Payload from APPWRITE_FUNCTION_DATA: " + JSON.stringify(payload));
     } catch (e) {
       payload = process.env.APPWRITE_FUNCTION_DATA;
+      log("DEBUG: APPWRITE_FUNCTION_DATA is not valid JSON: " + payload);
     }
   }
 
@@ -37,20 +44,15 @@ module.exports = async function (req, context) {
     return { success: false, error: "Request payload missing." };
   }
 
-  log("✅ Parsed Payload:", payload);
-
-  // Validate required fields in the payload
   if (!payload.email) {
     errorLog("❌ Email field missing in payload.");
     return { success: false, error: "Email is required." };
   }
   const userEmail = payload.email;
-  log("✅ Email Received:", userEmail);
+  log("✅ Email Received: " + userEmail);
 
-  // Set homepage URL (with a fallback)
   const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
 
-  // Launch Puppeteer for PDF Generation
   log("🚀 Launching Puppeteer...");
   const browser = await puppeteer.launch({
     args: chromium.args,
@@ -59,7 +61,6 @@ module.exports = async function (req, context) {
   });
   const page = await browser.newPage();
 
-  // HTML content for the PDF with some basic styling
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -83,7 +84,6 @@ module.exports = async function (req, context) {
   await browser.close();
   log("✅ PDF successfully generated.");
 
-  // Setup Nodemailer SMTP Connection
   log("🔄 Setting up SMTP transporter...");
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
@@ -95,17 +95,15 @@ module.exports = async function (req, context) {
     },
   });
 
-  // Verify SMTP Connection
   try {
     log("🔄 Verifying SMTP connection...");
     await transporter.verify();
     log("✅ SMTP Connection Successful!");
   } catch (smtpError) {
-    errorLog("❌ SMTP Connection Failed:", smtpError.message);
+    errorLog("❌ SMTP Connection Failed: " + smtpError.message);
     return { success: false, error: "SMTP connection failed: " + smtpError.message };
   }
 
-  // Configure and send the welcome email with PDF attachment
   const mailOptions = {
     from: process.env.SMTP_USER,
     to: userEmail,
@@ -121,7 +119,7 @@ module.exports = async function (req, context) {
   };
 
   await transporter.sendMail(mailOptions);
-  log("✅ Welcome email sent successfully to:", userEmail);
+  log("✅ Welcome email sent successfully to: " + userEmail);
 
   const result = { success: true, message: "Email sent successfully!" };
   log(JSON.stringify(result));
