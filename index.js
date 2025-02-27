@@ -10,11 +10,17 @@ module.exports = async function (req, context) {
 
   log("✅ Function execution started.");
 
-  // Dump raw request and environment variable for debugging.
+  // If the incoming object has a 'req' property, use that.
+  let requestData = req;
+  if (req && req.req) {
+    requestData = req.req;
+  }
+
+  // Dump raw request and APPWRITE_FUNCTION_DATA for debugging.
   try {
-    log("DEBUG: Raw req object: " + JSON.stringify(req));
+    log("DEBUG: Raw requestData object: " + JSON.stringify(requestData));
   } catch (e) {
-    log("DEBUG: Could not stringify req object");
+    log("DEBUG: Could not stringify requestData object");
   }
   log("DEBUG: APPWRITE_FUNCTION_DATA: " + process.env.APPWRITE_FUNCTION_DATA);
 
@@ -26,29 +32,35 @@ module.exports = async function (req, context) {
     .setKey(process.env.VITE_APPWRITE_API_KEY);
 
   let payload;
-  
-  // Check if payload exists in req.body
-  if (req && req.body && Object.keys(req.body).length > 0) {
-    payload = req.body;
-    log("DEBUG: Payload from req.body: " + JSON.stringify(payload));
-  } else if (process.env.APPWRITE_FUNCTION_DATA) {
+
+  // First, try using requestData.bodyJson.
+  if (requestData && requestData.bodyJson && Object.keys(requestData.bodyJson).length > 0) {
+    payload = requestData.bodyJson;
+    log("DEBUG: Payload from requestData.bodyJson: " + JSON.stringify(payload));
+  }
+  // Fallback: use requestData.body.
+  else if (requestData && requestData.body && Object.keys(requestData.body).length > 0) {
+    if (typeof requestData.body === "string") {
+      try {
+        payload = JSON.parse(requestData.body);
+        log("DEBUG: Payload from parsed requestData.body string: " + JSON.stringify(payload));
+      } catch (e) {
+        payload = requestData.body;
+        log("DEBUG: requestData.body is a string but not valid JSON: " + payload);
+      }
+    } else {
+      payload = requestData.body;
+      log("DEBUG: Payload from requestData.body (object): " + JSON.stringify(payload));
+    }
+  }
+  // Fallback: use APPWRITE_FUNCTION_DATA environment variable.
+  else if (process.env.APPWRITE_FUNCTION_DATA) {
     try {
       payload = JSON.parse(process.env.APPWRITE_FUNCTION_DATA);
       log("DEBUG: Payload from APPWRITE_FUNCTION_DATA: " + JSON.stringify(payload));
     } catch (e) {
       payload = process.env.APPWRITE_FUNCTION_DATA;
       log("DEBUG: APPWRITE_FUNCTION_DATA is not valid JSON: " + payload);
-    }
-  }
-
-  // If the payload is a string, try to parse it
-  if (typeof payload === 'string') {
-    try {
-      payload = JSON.parse(payload);
-      log("DEBUG: Parsed string payload: " + JSON.stringify(payload));
-    } catch (e) {
-      errorLog("❌ Error parsing payload string: " + e.message);
-      return { success: false, error: "Invalid JSON in payload." };
     }
   }
 
@@ -64,7 +76,6 @@ module.exports = async function (req, context) {
   const userEmail = payload.email;
   log("✅ Email Received: " + userEmail);
 
-  // Set homepage URL (with a fallback)
   const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
 
   log("🚀 Launching Puppeteer...");
