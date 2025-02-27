@@ -1,22 +1,21 @@
 const sdk = require("node-appwrite");
 const nodemailer = require("nodemailer");
 const puppeteer = require("puppeteer");
-const fs = require("fs");
 
 module.exports = async function (req, context) {
   // Fallback logging functions
-  const log = context && context.log ? context.log : console.log;
-  const errorLog = context && context.error ? context.error : console.error;
+  const log = (context && context.log) || console.log;
+  const errorLog = (context && context.error) || console.error;
 
   log("✅ Function execution started.");
 
-  // If the incoming object has a nested 'req', use it.
+  // Normalize the request object: if req contains a nested 'req', use that.
   let requestData = req;
   if (req && req.req) {
     requestData = req.req;
   }
 
-  // Debug: log the raw requestData and APPWRITE_FUNCTION_DATA.
+  // Debug logging for raw request data and APPWRITE_FUNCTION_DATA
   try {
     log("DEBUG: Raw requestData object: " + JSON.stringify(requestData));
   } catch (e) {
@@ -73,28 +72,13 @@ module.exports = async function (req, context) {
   const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
 
   log("🚀 Launching Puppeteer...");
-  // Get the executable path from Chromium
-  const execPath = await chromium.executablePath();
-  log("DEBUG: Chromium executable path: " + execPath);
-  
-  // Check if the Chromium binary exists at the given path.
-  if (!fs.existsSync(execPath)) {
-    errorLog("❌ Chromium executable not found at " + execPath);
-    return { success: false, error: "Chromium executable not found at " + execPath };
-  }
-
   let browser;
   try {
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: execPath,
-      headless: chromium.headless,
-    });
+    browser = await puppeteer.launch({ headless: true });
   } catch (launchError) {
     errorLog("❌ Failed to launch browser: " + launchError.message);
     return { success: false, error: "Failed to launch browser: " + launchError.message };
   }
-
   const page = await browser.newPage();
 
   const htmlContent = `
