@@ -72,7 +72,7 @@ module.exports = async function (req, context) {
   // Use a homepage URL from environment variable or fallback.
   const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
 
-  // Instead of generating a PDF, we simply create HTML content for the email.
+  // Updated HTML email content with improved styling and the provided text.
   const emailHtmlContent = `
     <!DOCTYPE html>
     <html>
@@ -80,14 +80,71 @@ module.exports = async function (req, context) {
         <meta charset="utf-8">
         <title>Welcome to GrowBuddy!</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1 { color: #2E8B57; }
-          p { font-size: 16px; }
+          body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f8f8f8;
+            color: #333;
+          }
+          .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          }
+          h1 {
+            color: #2E8B57;
+            font-size: 28px;
+            margin-bottom: 20px;
+          }
+          p {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+          }
+          .highlight {
+            font-weight: bold;
+          }
+          .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-top: 30px;
+          }
+          .button {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #2E8B57;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+          }
+          .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
+          }
         </style>
       </head>
       <body>
-        <h1>Welcome to GrowBuddy!</h1>
-        <p>Thank you for signing up. Visit us at <a href="${homepageUrl}">${homepageUrl}</a></p>
+        <div class="container">
+          <img class="logo" src="${homepageUrl}/img.jpeg" alt="GrowBuddy Logo" />
+          <h1>Welcome to GrowBuddy! 🌿</h1>
+          <p>We're excited to have you here! GrowBuddy is a private cannabis community built for growers, enthusiasts, and like-minded individuals who respect each other's privacy and passion for the plant.</p>
+          <p><span class="highlight">🔒 Privacy First</span> – We value your anonymity. We recommend using a username rather than personal details to keep your experience secure and chill.</p>
+          <p><span class="highlight">🤝 Respect the Vibes</span> – This is a friendly space. Treat others with kindness, share knowledge, and keep the community positive. No hate, no drama, just good vibes.</p>
+          <p><span class="highlight">🌱 Grow Together</span> – Whether you’re a beginner or a seasoned pro, this space is for learning, sharing, and thriving in the grow game.</p>
+          <p><span class="highlight">🚨 For Transparency</span> – GrowBuddy is a private cannabis club that operates within legal limits. We appreciate honesty from all members and expect everyone to engage in good faith. If you're here on business, we’d appreciate it if you were up front.</p>
+          <p>If you're happy and agree with all of what has been mentioned above, click the button below and join the crew.</p>
+          <p style="text-align: center;">
+            <a class="button" href="${homepageUrl}">Join GrowBuddy</a>
+          </p>
+          <div class="footer">
+            <p>GrowBuddy • A community built for growers</p>
+          </div>
+        </div>
       </body>
     </html>
   `;
