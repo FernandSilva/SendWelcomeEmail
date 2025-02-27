@@ -2,6 +2,7 @@ const sdk = require("node-appwrite");
 const nodemailer = require("nodemailer");
 const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
+const fs = require("fs");
 
 module.exports = async function (req, context) {
   // Fallback logging functions
@@ -10,13 +11,13 @@ module.exports = async function (req, context) {
 
   log("✅ Function execution started.");
 
-  // If the incoming object has a 'req' property, use that.
+  // If the incoming object has a nested 'req', use it.
   let requestData = req;
   if (req && req.req) {
     requestData = req.req;
   }
 
-  // Dump raw request and APPWRITE_FUNCTION_DATA for debugging.
+  // Debug: log the raw requestData and APPWRITE_FUNCTION_DATA.
   try {
     log("DEBUG: Raw requestData object: " + JSON.stringify(requestData));
   } catch (e) {
@@ -32,14 +33,10 @@ module.exports = async function (req, context) {
     .setKey(process.env.VITE_APPWRITE_API_KEY);
 
   let payload;
-
-  // First, try using requestData.bodyJson.
   if (requestData && requestData.bodyJson && Object.keys(requestData.bodyJson).length > 0) {
     payload = requestData.bodyJson;
     log("DEBUG: Payload from requestData.bodyJson: " + JSON.stringify(payload));
-  }
-  // Fallback: use requestData.body.
-  else if (requestData && requestData.body && Object.keys(requestData.body).length > 0) {
+  } else if (requestData && requestData.body && Object.keys(requestData.body).length > 0) {
     if (typeof requestData.body === "string") {
       try {
         payload = JSON.parse(requestData.body);
@@ -52,9 +49,7 @@ module.exports = async function (req, context) {
       payload = requestData.body;
       log("DEBUG: Payload from requestData.body (object): " + JSON.stringify(payload));
     }
-  }
-  // Fallback: use APPWRITE_FUNCTION_DATA environment variable.
-  else if (process.env.APPWRITE_FUNCTION_DATA) {
+  } else if (process.env.APPWRITE_FUNCTION_DATA) {
     try {
       payload = JSON.parse(process.env.APPWRITE_FUNCTION_DATA);
       log("DEBUG: Payload from APPWRITE_FUNCTION_DATA: " + JSON.stringify(payload));
@@ -79,11 +74,28 @@ module.exports = async function (req, context) {
   const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
 
   log("🚀 Launching Puppeteer...");
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath(),
-    headless: chromium.headless,
-  });
+  // Get the executable path from Chromium
+  const execPath = await chromium.executablePath();
+  log("DEBUG: Chromium executable path: " + execPath);
+  
+  // Check if the Chromium binary exists at the given path.
+  if (!fs.existsSync(execPath)) {
+    errorLog("❌ Chromium executable not found at " + execPath);
+    return { success: false, error: "Chromium executable not found at " + execPath };
+  }
+
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: execPath,
+      headless: chromium.headless,
+    });
+  } catch (launchError) {
+    errorLog("❌ Failed to launch browser: " + launchError.message);
+    return { success: false, error: "Failed to launch browser: " + launchError.message };
+  }
+
   const page = await browser.newPage();
 
   const htmlContent = `
