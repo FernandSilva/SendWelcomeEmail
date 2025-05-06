@@ -70,7 +70,7 @@ module.exports = async function (req, context) {
   log("✅ Email Received: " + userEmail);
 
   // Use a homepage URL from environment variable or fallback.
-  const homepageUrl = process.env.HOMEPAGE_URL || "https://growbuddy.club";
+  const homepageUrl = process.env.HOMEPAGE_URL || "https://www.growbuddy.club";
 
   // Updated HTML email content with the new text and no image above the heading.
   const emailHtmlContent = `
