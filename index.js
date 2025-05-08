@@ -141,7 +141,7 @@ module.exports = async function (req, context) {
   </head>
   <body>
     <div class="container">
-     
+      <img src="https://www.growbuddy.club/logo.jpeg" alt="GrowBuddy Logo" class="logo">
       <h1>Welcome to GrowBuddy! 🌿</h1>
       <p>We're excited to have you here! GrowBuddy is a private cannabis community built for growers, enthusiasts, and like-minded individuals who respect each other's privacy and passion for the plant.</p>
 
