@@ -192,5 +192,5 @@ module.exports = async function (req, context) {
   await transporter.sendMail(mailOptions);
   log("✅ Welcome email sent successfully to: " + userEmail);
 
-  return { success: true, message: "Email sent successfully!" };
+  return { success: true, message: "Email sent successfully!!" };
 };
