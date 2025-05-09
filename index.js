@@ -8,15 +8,14 @@ module.exports = async function (req, context) {
   log("✅ Function execution started.");
 
   let requestData = req;
-  if (req && req.req) {
-    requestData = req.req;
-  }
+  if (req && req.req) requestData = req.req;
 
   try {
     log("DEBUG: Raw requestData object: " + JSON.stringify(requestData));
   } catch (e) {
     log("DEBUG: Could not stringify requestData object");
   }
+
   log("DEBUG: APPWRITE_FUNCTION_DATA: " + process.env.APPWRITE_FUNCTION_DATA);
 
   const client = new sdk.Client();
@@ -26,14 +25,16 @@ module.exports = async function (req, context) {
     .setKey(process.env.VITE_APPWRITE_API_KEY);
 
   let payload;
-  if (requestData?.bodyJson && Object.keys(requestData.bodyJson).length > 0) {
+  if (requestData && requestData.bodyJson && Object.keys(requestData.bodyJson).length > 0) {
     payload = requestData.bodyJson;
-  } else if (requestData?.body && Object.keys(requestData.body).length > 0) {
-    try {
-      payload = typeof requestData.body === "string"
-        ? JSON.parse(requestData.body)
-        : requestData.body;
-    } catch (e) {
+  } else if (requestData && requestData.body && Object.keys(requestData.body).length > 0) {
+    if (typeof requestData.body === "string") {
+      try {
+        payload = JSON.parse(requestData.body);
+      } catch (e) {
+        payload = requestData.body;
+      }
+    } else {
       payload = requestData.body;
     }
   } else if (process.env.APPWRITE_FUNCTION_DATA) {
@@ -129,31 +130,39 @@ module.exports = async function (req, context) {
     <div class="container">
       <img src="https://www.growbuddy.club/logo.jpeg" alt="GrowBuddy Logo" class="logo">
       <h1>Welcome to GrowBuddy! 🌿</h1>
+
       <p>We're excited to have you here! GrowBuddy is a private cannabis community built for growers, enthusiasts, and like-minded individuals who respect each other's privacy and passion for the plant.</p>
+
       <p><span class="highlight">🔒 Privacy First</span> – We value your anonymity. We recommend using a username rather than personal details to keep your experience secure and chill. There are no ads, no tracking, and no data harvesting. GrowBuddy is a free and private social club—not a data-mining platform. Your data is periodically wiped and never sold to third parties.</p>
+
       <p><span class="highlight">🤝 Respect the Vibes</span> – This is a friendly space. Treat others with kindness, share knowledge, and keep the community positive. No hate, no drama—just good vibes. Users who violate these principles may be removed along with their data.</p>
+
       <p><span class="highlight">🚨 Transparency</span> – GrowBuddy is a private club. If you're here for official or commercial reasons, please be upfront. We reserve the right to remove any user who is not aligned with our mission and community standards.</p>
+
       <p><span class="highlight">🌱 Grow Together</span> – Whether you’re a beginner or a seasoned pro, this space is for learning, sharing, and thriving in the grow game. GrowBuddy is on the hunt for the world’s best growers—to share knowledge, inspire others, and elevate the community together.</p>
+
       <p><span class="highlight">Installation Guide</span><br>
-        Want quick access to GrowBuddy? No need for app stores—just add it to your home screen!<br>
-        <strong>On iPhone (Safari):</strong> Tap the share icon, then select "Add to Home Screen."<br>
-        <strong>On Android (Chrome):</strong> Tap the menu (three dots), then choose "Add to Home Screen."<br>
-        This creates an icon on your device, making GrowBuddy feel just like a native app—one tap, and you're in! 🌿🚀
+         Want quick access to GrowBuddy? No need for app stores—just add it to your home screen!<br>
+         <strong>On iPhone (Safari):</strong> Tap the share icon, then select "Add to Home Screen."<br>
+         <strong>On Android (Chrome):</strong> Tap the menu (three dots), then choose "Add to Home Screen."<br>
+         This creates an icon on your device, making GrowBuddy feel just like a native app—one tap, and you're in! 🌿🚀
       </p>
+
       <p class="disclaimer">
         By clicking the link below, you confirm that you accept GrowBuddy's terms and conditions mentioned above and in the application.
       </p>
-      <a class="button" href="${homepageUrl}/sign-up">Join GrowBuddy</a>
+
+      <a class="button" href="${homepageUrl}/signup">Join GrowBuddy</a>
+
       <div class="footer">
         <p>GrowBuddy • A community built for growers</p>
       </div>
     </div>
   </body>
 </html>
-`;
+  `;
 
-  log("✉️ Email content preview: " + emailHtmlContent.substring(0, 250));
-
+  log("🔄 Setting up SMTP transporter...");
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT, 10),
@@ -183,11 +192,5 @@ module.exports = async function (req, context) {
   await transporter.sendMail(mailOptions);
   log("✅ Welcome email sent successfully to: " + userEmail);
 
-  const result = { success: true, message: "Email sent successfully!" };
-  log(JSON.stringify(result));
-
-  // 🔁 Dummy change to force deploy update
-  log("🛠️ Function updated at " + new Date().toISOString());
-
-  return result;
+  return { success: true, message: "Email sent successfully!" };
 };
