@@ -58,7 +58,7 @@ module.exports = async function (req, context) {
   const userEmail = payload.email;
   log("✅ Email Received: " + userEmail);
 
-  const homepageUrl = process.env.HOMEPAGE_URL ;
+  const homepageUrl = process.env.HOMEPAGE_URL || "https://www.growbuddy.club";
 
   const emailHtmlContent = `
 <!DOCTYPE html>
