@@ -81,11 +81,6 @@ module.exports = async function (req, context) {
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       }
-      .logo {
-        display: block;
-        margin: 0 auto 20px auto;
-        max-width: 120px;
-      }
       h1 {
         color: #2E8B57;
         font-size: 28px;
@@ -128,7 +123,6 @@ module.exports = async function (req, context) {
   </head>
   <body>
     <div class="container">
-      <img src="https://www.growbuddy.club/logo.jpeg" alt="GrowBuddy Logo" class="logo">
       <h1>Welcome to GrowBuddy! 🌿</h1>
 
       <p>We're excited to have you here! GrowBuddy is a private cannabis community built for growers, enthusiasts, and like-minded individuals who respect each other's privacy and passion for the plant.</p>
@@ -152,7 +146,7 @@ module.exports = async function (req, context) {
         By clicking the link below, you confirm that you accept GrowBuddy's terms and conditions mentioned above and in the application.
       </p>
 
-      <a class="button" href="${homepageUrl}/signup">Join GrowBuddy</a>
+      <a class="button" href="${homepageUrl}/sign-up">Join GrowBuddy</a>
 
       <div class="footer">
         <p>GrowBuddy • A community built for growers</p>
