@@ -58,7 +58,7 @@ module.exports = async function (req, context) {
   const userEmail = payload.email;
   log("✅ Email Received: " + userEmail);
 
-  const homepageUrl = process.env.HOMEPAGE_URL || "https://grow-buddy.vercel.app";
+  const homepageUrl = process.env.HOMEPAGE_URL;
 
   const emailHtmlContent = `
 <!DOCTYPE html>
